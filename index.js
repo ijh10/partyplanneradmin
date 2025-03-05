@@ -1,6 +1,6 @@
 // === Constants ===
-const BASE = "https://fsa-crud-2aa9294fe819.herokuapp.com/api";
-const COHORT = ""; // Make sure to change this!
+const BASE = "https://fsa-crud-2aa9294fe819.herokuapp.com/api/";
+const COHORT = "2412-ftb-et-web-am";
 const API = BASE + COHORT;
 
 // === State ===
@@ -33,6 +33,21 @@ async function getParty(id) {
   }
 }
 
+async function addParties() {
+  try {
+    await fetch(API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/jason",
+      },
+      body: JSON.stringify(Parties),
+    });
+    await getParties();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 /** Updates state with all RSVPs from the API */
 async function getRsvps() {
   try {
@@ -56,8 +71,76 @@ async function getGuests() {
     console.error(e);
   }
 }
+async function addParty(party) {
+  try {
+    await fetch(API + "/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(party),
+    });
+    await getParties();
+  } catch (e) {
+    console.error(e);
+  }
+}
+async function deleteParty(id) {
+  try {
+    await fetch(API + "/" + id, { method: "DELETE" });
+    selectedParty = undefined;
+    await getParties();
+  } catch (e) {
+    console.error(e);
+  }
+}
+function addPartyForm() {
+  const $form = document.createElement("form");
 
-// === Components ===
+  $form.innerHTML = `
+    <label>
+    name
+      <input name="name" type="text"/>
+    </label>
+   <label>
+      description
+      <input name="descripton" type=text/>
+    </label>
+    <label>
+      date
+      <input name="date" type="date"/>
+    </label>
+    <label>
+     location
+      <input name="location" type="text"/>
+    </label>
+
+     <button value="add">Add party</button>
+  `;
+
+  $form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    // event.submitter is the button that submitted the form
+    // .value gets us the value of that button
+    const action = event.submitter.value;
+
+    // Do something different depending on which button was clicked
+    if (action === "add") {
+      const data = new FormData($form);
+      const number = data.get("number");
+      addNumberToBank(+number);
+    } else if (action === "sort1") {
+      moveNumberFromBank();
+    } else if (action === "sortAll") {
+      while (bank.length > 0) {
+        moveNumberFromBank();
+      }
+    }
+  });
+
+  return $form;
+}
 
 /** Party name that shows more details about the party when clicked */
 function PartyListItem(party) {
@@ -142,9 +225,10 @@ function render() {
         <h2>Party Details</h2>
         <SelectedParty></SelectedParty>
       </section>
+       <AddPartyForm></AddPartyForm>
     </main>
   `;
-
+  $app.querySelector("addPartyForm").replaceWith(addPartyForm());
   $app.querySelector("PartyList").replaceWith(PartyList());
   $app.querySelector("SelectedParty").replaceWith(SelectedParty());
 }
